@@ -31,6 +31,14 @@ function App() {
   const [generatingSubject, setGeneratingSubject] = useState(false);
 
   const handleExtract = async () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      setError('Configuration Supabase manquante : vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
+
     if (!newsletterNumber.trim()) {
       setError('Veuillez entrer le numéro de la newsletter');
       return;
@@ -55,7 +63,12 @@ function App() {
     setGeneratedHTML('');
 
     try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-text`;
+      const apiUrl = `${supabaseUrl}/functions/v1/extract-text`;
+
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${supabaseKey}`,
+      };
 
       const requests = [];
       const urlMap: { [key: string]: string } = {};
@@ -63,7 +76,7 @@ function App() {
       if (urlArticle1.trim()) {
         requests.push(fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ url: urlArticle1, type: 'article' }),
         }));
         urlMap[requests.length - 1] = 'article1';
@@ -72,7 +85,7 @@ function App() {
       if (urlArticle2.trim()) {
         requests.push(fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ url: urlArticle2, type: 'article' }),
         }));
         urlMap[requests.length - 1] = 'article2';
@@ -81,7 +94,7 @@ function App() {
       if (urlArticle3.trim()) {
         requests.push(fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ url: urlArticle3, type: 'article' }),
         }));
         urlMap[requests.length - 1] = 'article3';
@@ -90,7 +103,7 @@ function App() {
       if (urlTool.trim()) {
         requests.push(fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ url: urlTool, type: 'tool' }),
         }));
         urlMap[requests.length - 1] = 'tool';
@@ -99,7 +112,7 @@ function App() {
       if (urlDeuxioArticle.trim()) {
         requests.push(fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ url: urlDeuxioArticle, type: 'deuxio' }),
         }));
         urlMap[requests.length - 1] = 'deuxioArticle';
@@ -108,7 +121,7 @@ function App() {
       if (urlDeuxioTool.trim()) {
         requests.push(fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ url: urlDeuxioTool, type: 'deuxio' }),
         }));
         urlMap[requests.length - 1] = 'deuxioTool';
@@ -159,6 +172,14 @@ function App() {
   };
 
   const handleGenerateSubject = async () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      setError('Configuration Supabase manquante : vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
+
     const hasArticles = article1 || article2 || article3 || tool || deuxioArticle || deuxioTool;
     if (!hasArticles) {
       setError('Veuillez d\'abord extraire au moins un article');
@@ -169,11 +190,14 @@ function App() {
     setError('');
 
     try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-subject`;
+      const apiUrl = `${supabaseUrl}/functions/v1/generate-subject`;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${supabaseKey}`,
+        },
         body: JSON.stringify({
           article1Summary: article1?.summary || '',
           article2Summary: article2?.summary || '',
@@ -234,6 +258,14 @@ function App() {
   };
 
   const handleSendToBrevo = async () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      setError('Configuration Supabase manquante : vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
+
     if (!generatedHTML) {
       setError('Veuillez d\'abord générer le HTML');
       return;
@@ -255,13 +287,16 @@ function App() {
 
       const emailHTML = generateEmailHTML(newsletterData, newsletterNumber);
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-brevo-campaign`;
+      const apiUrl = `${supabaseUrl}/functions/v1/create-brevo-campaign`;
 
       console.log('Envoi vers Brevo...', { apiUrl, campaignNumber: newsletterNumber });
 
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${supabaseKey}`,
+        },
         body: JSON.stringify({
           htmlContent: emailHTML,
           campaignNumber: newsletterNumber,
