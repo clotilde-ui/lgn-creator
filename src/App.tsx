@@ -301,7 +301,7 @@ function App() {
           <div className="inline-flex items-center justify-center mb-4">
             <img src="/favicon.svg" alt="LGN Logo" className="w-20 h-20" />
           </div>
-          <h1 className="text-4xl font-bold text-lgn-dark mb-2">
+          <h1 className="text-4xl font-bold text-lgn-pink mb-2">
             Générateur de Newsletter
           </h1>
           <p className="text-gray-700">
