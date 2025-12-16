@@ -140,6 +140,18 @@ Deno.serve(async (req: Request) => {
     }
 
     const html = await response.text();
+
+    // Extract several potential titles as fallbacks if the AI can't find one
+    const pageTitle = (html.match(/<title[^>]*>(.*?)<\/title>/i)?.[1] || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const ogTitle = (html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["'][^>]*>/i)?.[1] || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const h1Title = (html.match(/<h1[^>]*>(.*?)<\/h1>/i)?.[1] || '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
     
     const text = html
       .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '')
@@ -262,11 +274,12 @@ Deno.serve(async (req: Request) => {
       result.toolName = extracted;
       result.tag = tag;
     } else if (type === 'deuxio') {
-      result.title = summary;
+      result.title = summary || ogTitle || pageTitle || h1Title;
     } else {
       result.author = extracted;
       result.tag = tag;
-      result.title = titleExtracted.replace(/^Titre\s*:\s*/i, '').replace(/^"|"$/g, '').trim();
+      const cleanedTitle = titleExtracted.replace(/^Titre\s*:\s*/i, '').replace(/^"|"$/g, '').trim();
+      result.title = cleanedTitle || ogTitle || pageTitle || h1Title;
     }
 
     return new Response(
