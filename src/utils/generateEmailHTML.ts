@@ -27,15 +27,20 @@ function formatSummaryToHTML(summary: string): string {
   let result = '';
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const nextLine = i < lines.length - 1 ? lines[i + 1] : null;
 
     if (line.startsWith('#')) {
       let titleText = line.replace(/^#+\s*/, '');
       titleText = convertMarkdownToHTML(titleText);
       const marginTop = i > 0 ? '20px' : '0';
+      // Pas de margin-bottom : le paragraphe qui suit doit être collé au titre
       result += `<p style="margin: ${marginTop} 0 0 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;"><strong>${titleText}</strong></p>`;
     } else {
       const htmlLine = convertMarkdownToHTML(line);
-      result += `<p style="margin: 0 0 10px 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">${htmlLine}</p>`;
+      // Espace après le paragraphe, sauf si le suivant est un titre (le titre gère son propre espace avant avec margin-top)
+      const isNextHeading = nextLine && nextLine.startsWith('#');
+      const marginBottom = isNextHeading ? '0' : '10px';
+      result += `<p style="margin: 0 0 ${marginBottom} 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">${htmlLine}</p>`;
     }
   }
 
@@ -49,7 +54,8 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
     article3,
     tool,
     deuxioArticle,
-    deuxioTool,
+    linkedinPostUrl,
+    linkedinPostExcerpt,
   } = data;
 
   if (!article1 && !article2 && !article3 && !tool) {
@@ -76,14 +82,14 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
   const tagTool = (tool?.tag || '').toUpperCase();
 
   const deuxioArticleTitle = deuxioArticle?.title || 'Article deux.io';
-  const deuxioToolTitle = deuxioTool?.title || 'Outil deux.io';
+  const linkedinUrl = linkedinPostUrl || '#';
+  const linkedinExcerpt = linkedinPostExcerpt || 'Post LinkedIn';
 
   const url1 = article1?.url || '#';
   const url2 = article2?.url || '#';
   const url3 = article3?.url || '#';
   const urlTool = tool?.url || '#';
   const urlDeuxioArticle = deuxioArticle?.url || '#';
-  const urlDeuxioTool = deuxioTool?.url || '#';
 
   const campaignNumber = newsletterNumber;
 
@@ -258,7 +264,7 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
           </tr>
           ` : ''}
 
-          ${deuxioArticle || deuxioTool ? `
+          ${deuxioArticle || linkedinPostUrl ? `
           <!-- Divider -->
           <tr>
             <td align="center" style="padding: 30px 40px 15px 40px;">
@@ -280,8 +286,8 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
               ${deuxioArticle ? `<p style="margin: 0 0 10px 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">
                 📚 <span style="background-color: #ffb7fa; padding: 2px 8px;"><a href="${urlDeuxioArticle}?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignNumber}" style="color: #000000; text-decoration: none;"><em>ARTICLE :</em></a></span> <em>${deuxioArticleTitle}</em>
               </p>` : ''}
-              ${deuxioTool ? `<p style="margin: 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">
-                <em>⚒️ </em><a href="${urlDeuxioTool}?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignNumber}"><span style="background-color: #26b743; padding: 2px 8px; color: #000000;"><em>TOOLS</em></span></a><span style="background-color: #26b743; padding: 2px 8px;"><em>:</em></span> <em>${deuxioToolTitle}</em>
+              ${linkedinPostUrl ? `<p style="margin: 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">
+                <em>💼 </em><a href="${linkedinUrl}"><span style="background-color: #0077B5; padding: 2px 8px; color: #FFFFFF;"><em>LINKEDIN</em></span></a><span style="background-color: #0077B5; padding: 2px 8px; color: #FFFFFF;"><em>:</em></span> <em>${linkedinExcerpt}</em>
               </p>` : ''}
             </td>
           </tr>
@@ -319,7 +325,7 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
           <!-- CTA Button -->
           <tr>
             <td align="center" style="padding: 0 40px 30px 40px;">
-              <a href="https://calendly.com/deuxio/agence?month=2025-09" style="display: inline-block; background-color: #232323; color: #ffffff; font-family: Lato, sans-serif; font-size: 17px; padding: 15px 40px; text-decoration: none; border-radius: 4px;">
+              <a href="https://deuxio.typeform.com/to/MMUCIr?typeform-source=newsletter" style="display: inline-block; background-color: #232323; color: #ffffff; font-family: Lato, sans-serif; font-size: 17px; padding: 15px 40px; text-decoration: none; border-radius: 4px;">
                 Prendre rendez-vous
               </a>
             </td>

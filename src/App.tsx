@@ -13,14 +13,14 @@ function App() {
   const [urlArticle3, setUrlArticle3] = useState('');
   const [urlTool, setUrlTool] = useState('');
   const [urlDeuxioArticle, setUrlDeuxioArticle] = useState('');
-  const [urlDeuxioTool, setUrlDeuxioTool] = useState('');
+  const [linkedinPostUrl, setLinkedinPostUrl] = useState('');
+  const [linkedinPostExcerpt, setLinkedinPostExcerpt] = useState('');
 
   const [article1, setArticle1] = useState<ArticleData | null>(null);
   const [article2, setArticle2] = useState<ArticleData | null>(null);
   const [article3, setArticle3] = useState<ArticleData | null>(null);
   const [tool, setTool] = useState<ArticleData | null>(null);
   const [deuxioArticle, setDeuxioArticle] = useState<ArticleData | null>(null);
-  const [deuxioTool, setDeuxioTool] = useState<ArticleData | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,21 +31,13 @@ function App() {
   const [generatingSubject, setGeneratingSubject] = useState(false);
 
   const handleExtract = async () => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      setError('Configuration Supabase manquante : vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
-      return;
-    }
-
     if (!newsletterNumber.trim()) {
       setError('Veuillez entrer le numéro de la newsletter');
       return;
     }
 
     const hasAtLeastOneUrl = urlArticle1.trim() || urlArticle2.trim() || urlArticle3.trim() ||
-                             urlTool.trim() || urlDeuxioArticle.trim() || urlDeuxioTool.trim();
+                             urlTool.trim() || urlDeuxioArticle.trim();
 
     if (!hasAtLeastOneUrl) {
       setError('Veuillez entrer au moins une URL');
@@ -59,15 +51,13 @@ function App() {
     setArticle3(null);
     setTool(null);
     setDeuxioArticle(null);
-    setDeuxioTool(null);
     setGeneratedHTML('');
 
     try {
-      const apiUrl = `${supabaseUrl}/functions/v1/extract-text`;
+      const apiUrl = '/api/extract-text';
 
       const headers = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${supabaseKey}`,
       };
 
       const requests = [];
@@ -118,14 +108,6 @@ function App() {
         urlMap[requests.length - 1] = 'deuxioArticle';
       }
 
-      if (urlDeuxioTool.trim()) {
-        requests.push(fetch(apiUrl, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ url: urlDeuxioTool, type: 'deuxio' }),
-        }));
-        urlMap[requests.length - 1] = 'deuxioTool';
-      }
 
       const responses = await Promise.all(requests);
 
@@ -159,9 +141,6 @@ function App() {
           case 'deuxioArticle':
             setDeuxioArticle(data);
             break;
-          case 'deuxioTool':
-            setDeuxioTool(data);
-            break;
         }
       });
     } catch (err) {
@@ -172,15 +151,7 @@ function App() {
   };
 
   const handleGenerateSubject = async () => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      setError('Configuration Supabase manquante : vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
-      return;
-    }
-
-    const hasArticles = article1 || article2 || article3 || tool || deuxioArticle || deuxioTool;
+    const hasArticles = article1 || article2 || article3 || tool || deuxioArticle;
     if (!hasArticles) {
       setError('Veuillez d\'abord extraire au moins un article');
       return;
@@ -190,13 +161,10 @@ function App() {
     setError('');
 
     try {
-      const apiUrl = `${supabaseUrl}/functions/v1/generate-subject`;
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/generate-subject', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${supabaseKey}`,
         },
         body: JSON.stringify({
           article1Summary: article1?.summary || '',
@@ -231,7 +199,8 @@ function App() {
       article3,
       tool,
       deuxioArticle,
-      deuxioTool,
+      linkedinPostUrl: linkedinPostUrl.trim() || undefined,
+      linkedinPostExcerpt: linkedinPostExcerpt.trim() || undefined,
     };
 
     const html = generateNewsletterHTML(newsletterData, newsletterNumber);
@@ -258,14 +227,6 @@ function App() {
   };
 
   const handleSendToBrevo = async () => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      setError('Configuration Supabase manquante : vérifiez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY.');
-      return;
-    }
-
     if (!generatedHTML) {
       setError('Veuillez d\'abord générer le HTML');
       return;
@@ -282,20 +243,18 @@ function App() {
         article3,
         tool,
         deuxioArticle,
-        deuxioTool,
+        linkedinPostUrl: linkedinPostUrl.trim() || undefined,
+        linkedinPostExcerpt: linkedinPostExcerpt.trim() || undefined,
       };
 
       const emailHTML = generateEmailHTML(newsletterData, newsletterNumber);
 
-      const apiUrl = `${supabaseUrl}/functions/v1/create-brevo-campaign`;
+      console.log('Envoi vers Brevo...', { campaignNumber: newsletterNumber });
 
-      console.log('Envoi vers Brevo...', { apiUrl, campaignNumber: newsletterNumber });
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/create-brevo-campaign', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${supabaseKey}`,
         },
         body: JSON.stringify({
           htmlContent: emailHTML,
@@ -426,32 +385,45 @@ function App() {
 
             <div className="pt-4 border-t border-lgn-pink/20">
               <h3 className="text-sm font-semibold text-lgn-dark mb-3">Ressources deux.io</h3>
+              <div>
+                <label htmlFor="urlDeuxioArticle" className="block text-sm font-medium text-slate-700 mb-2">
+                  URL Article deux.io
+                </label>
+                <input
+                  id="urlDeuxioArticle"
+                  type="url"
+                  value={urlDeuxioArticle}
+                  onChange={(e) => setUrlDeuxioArticle(e.target.value)}
+                  placeholder="https://deux.io/article"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lgn-green focus:border-transparent outline-none transition-all"
+                  disabled={loading}
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="urlDeuxioArticle" className="block text-sm font-medium text-slate-700 mb-2">
-                    URL Article deux.io
+                  <label htmlFor="linkedinPostUrl" className="block text-sm font-medium text-slate-700 mb-2">
+                    URL du post LinkedIn
                   </label>
                   <input
-                    id="urlDeuxioArticle"
+                    id="linkedinPostUrl"
                     type="url"
-                    value={urlDeuxioArticle}
-                    onChange={(e) => setUrlDeuxioArticle(e.target.value)}
-                    placeholder="https://deux.io/article"
+                    value={linkedinPostUrl}
+                    onChange={(e) => setLinkedinPostUrl(e.target.value)}
+                    placeholder="https://www.linkedin.com/posts/..."
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lgn-green focus:border-transparent outline-none transition-all"
                     disabled={loading}
                   />
                 </div>
-
                 <div>
-                  <label htmlFor="urlDeuxioTool" className="block text-sm font-medium text-slate-700 mb-2">
-                    URL Outil deux.io
+                  <label htmlFor="linkedinPostExcerpt" className="block text-sm font-medium text-slate-700 mb-2">
+                    Debut du post LinkedIn
                   </label>
-                  <input
-                    id="urlDeuxioTool"
-                    type="url"
-                    value={urlDeuxioTool}
-                    onChange={(e) => setUrlDeuxioTool(e.target.value)}
-                    placeholder="https://deux.io/ressources/outil"
+                  <textarea
+                    id="linkedinPostExcerpt"
+                    value={linkedinPostExcerpt}
+                    onChange={(e) => setLinkedinPostExcerpt(e.target.value)}
+                    placeholder="Les premières lignes du post..."
+                    rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lgn-green focus:border-transparent outline-none transition-all"
                     disabled={loading}
                   />
@@ -552,10 +524,10 @@ function App() {
                   </div>
                 )}
 
-                {deuxioTool && (
+                {linkedinPostUrl && (
                   <div className="bg-white rounded-lg border border-slate-200 p-6">
-                    <h3 className="text-sm font-semibold text-slate-700 mb-2">Outil deux.io</h3>
-                    <p className="text-slate-600">{deuxioTool.title || 'Titre extrait'}</p>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-2">Post LinkedIn</h3>
+                    <p className="text-slate-600">{linkedinPostExcerpt || linkedinPostUrl}</p>
                   </div>
                 )}
               </div>

@@ -1,11 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
-
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const NEWSLETTER_PROMPT = `Tu envoies chaque semaine une newsletter marketing à tes 4000 abonnés.
 Chaque semaine, je cherche 3 articles sur des sujets marketing, et je te les donne pour que tu les résumes en quelques points clés pour que tes lecteurs n'aient pas besoin d'aller sur le site de l'article pour le lire. Parfois, les articles d'origine sont en anglais, alors tu fais le résumé en français.
@@ -24,21 +17,20 @@ Voici quelques consignes à respecter quand tu fais ces résumés :
 - parfois, l'article que je vais te donner sera en anglais. Dans la traduction, tu devras respecter le jargon français du domaine d'expertise.
 - ne mets pas de barres entre les paragraphes`;
 
-const TOOL_PROMPT = `Tu envoies chaque semaine une newsletter marketing à tes 4000 abonnés.
-Dans cette newsletter, tu présentes "l'outil de la semaine" en lisant l'extrait de la landing page de l'outil.
+const TOOL_PROMPT = `Tu écris la section "outil de la semaine" d'une newsletter marketing (4000 abonnés). On te donne le texte d'une landing page d'un outil, et tu dois le présenter brièvement.
 
-Voici quelques consignes à respecter pour cette section :
-- pas de tirets
-- pas d'émojis
-- un peu d'humour
-- pas de virgule après un "et" si ce n'est pas grammaticalement nécessaire
-- si tu t'adresses au lecteur : tutoiement obligatoire
-- 10 lignes suffisent
-- style conversationnel et engageant
-- mettre en avant les bénéfices concrets de l'outil
-- éviter le jargon technique excessif
-- conclure avec une phrase qui donne envie de tester l'outil
-- pas de barres ou de séparateurs dans le texte`;
+Consignes de style :
+- Écris comme un pote qui recommande un truc qu'il a testé, pas comme un copywriter
+- Tutoiement obligatoire
+- Phrases courtes et directes. Pas de superlatifs, pas de "révolutionnaire", pas de "game-changer"
+- Ne commence JAMAIS par une question rhétorique ("Tu cherches un outil qui..." / "Marre de...")
+- Ne commence JAMAIS par "Imagine..." ou "Et si..."
+- Pas de liste de features à la chaîne. Explique concrètement ce que l'outil fait et pourquoi c'est utile
+- Pas d'émojis, pas de tirets, pas de barres ou séparateurs
+- Pas de virgule après un "et" si ce n'est pas grammaticalement nécessaire
+- Évite les formulations génériques et creuses type "un must-have", "indispensable", "tes campagnes vont passer au niveau supérieur"
+- 8 à 10 lignes max
+- Tu peux être un peu drôle mais sans forcer`;
 
 const AUTHOR_PROMPT = `Tu es un assistant qui extrait le nom de l'auteur d'un article.
 À partir du texte brut d'un article, trouve et retourne UNIQUEMENT le nom de l'auteur.
@@ -51,9 +43,10 @@ Si tu ne trouves pas le nom, retourne "Outil".
 Ne retourne que le nom, rien d'autre.`;
 
 const TITLE_PROMPT = `Tu es un assistant qui extrait le titre d'une page web.
-À partir du texte brut, trouve et retourne UNIQUEMENT le titre principal de la page.
-Si tu ne trouves pas de titre clair, résume en quelques mots le sujet principal.
-Ne retourne que le titre, rien d'autre. Maximum 15 mots.`;
+À partir du texte brut, trouve et retourne UNIQUEMENT le titre principal de la page, TRADUIT EN FRANÇAIS.
+Si le titre est en anglais ou dans une autre langue, traduis-le en français.
+Si tu ne trouves pas de titre clair, résume en quelques mots le sujet principal en français.
+Ne retourne que le titre traduit en français, rien d'autre. Maximum 15 mots.`;
 
 const TAG_PROMPT = `Tu es un assistant qui génère un tag catégorisé avec emoji pour un article ou un outil marketing.
 
@@ -85,63 +78,36 @@ Exemples de tags possibles :
 
 Retourne UNIQUEMENT le tag avec son emoji (ex: "📊 Analytics"). Ne retourne rien d'autre.`;
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    const openaiApiKey = process.env.OPENAI_API_KEY;
 
     if (!openaiApiKey) {
-      return new Response(
-        JSON.stringify({ error: "OPENAI_API_KEY not configured" }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return res.status(500).json({ error: 'OPENAI_API_KEY not configured' });
     }
 
-    const { url, type } = await req.json();
+    const { url, type } = req.body;
 
     if (!url) {
-      return new Response(
-        JSON.stringify({ error: "URL is required" }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return res.status(400).json({ error: 'URL is required' });
     }
 
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      return new Response(
-        JSON.stringify({ error: `Failed to fetch URL: ${response.statusText}` }),
-        {
-          status: response.status,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return res.status(response.status).json({ error: `Failed to fetch URL: ${response.statusText}` });
     }
 
     const html = await response.text();
 
-    // Extract several potential titles as fallbacks if the AI can't find one
     const pageTitle = (html.match(/<title[^>]*>(.*?)<\/title>/i)?.[1] || '')
       .replace(/\s+/g, ' ')
       .trim();
@@ -152,7 +118,7 @@ Deno.serve(async (req: Request) => {
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    
+
     const text = html
       .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '')
       .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, '')
@@ -166,9 +132,9 @@ Deno.serve(async (req: Request) => {
       .replace(/\s+/g, ' ')
       .trim();
 
-    let promptToUse, userMessage, extractPrompt;
+    let promptToUse: string, userMessage: string, extractPrompt: string | null;
     let extractTitle = false;
-    
+
     if (type === 'tool') {
       promptToUse = TOOL_PROMPT;
       userMessage = `Voici l'extrait de la landing page de l'outil :\n\n${text}`;
@@ -184,7 +150,12 @@ Deno.serve(async (req: Request) => {
       extractTitle = true;
     }
 
-    const requests = [{
+    const requests: Array<{
+      model: string;
+      messages: Array<{ role: string; content: string }>;
+      temperature: number;
+      max_tokens: number;
+    }> = [{
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: promptToUse },
@@ -243,19 +214,12 @@ Deno.serve(async (req: Request) => {
       )
     );
 
-    for (const response of openaiResponses) {
-      if (!response.ok) {
-        const errorData = await response.json();
-        return new Response(
-          JSON.stringify({ error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}` }),
-          {
-            status: response.status,
-            headers: {
-              ...corsHeaders,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+    for (const resp of openaiResponses) {
+      if (!resp.ok) {
+        const errorData = await resp.json();
+        return res.status(resp.status).json({
+          error: `OpenAI API error: ${errorData.error?.message || 'Unknown error'}`,
+        });
       }
     }
 
@@ -268,7 +232,7 @@ Deno.serve(async (req: Request) => {
     const tag = responseData[2]?.choices[0]?.message?.content?.trim() || '';
     const titleExtracted = extractTitle ? (responseData[3]?.choices[0]?.message?.content?.trim() || '') : '';
 
-    const result: any = { text, summary, url };
+    const result: Record<string, unknown> = { text, summary, url };
 
     if (type === 'tool') {
       result.toolName = extracted;
@@ -282,26 +246,9 @@ Deno.serve(async (req: Request) => {
       result.title = cleanedTitle || ogTitle || pageTitle || h1Title;
     }
 
-    return new Response(
-      JSON.stringify(result),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return res.status(200).json(result);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return res.status(500).json({ error: message });
   }
-});
+}

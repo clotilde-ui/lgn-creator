@@ -15,6 +15,7 @@ function formatSummaryForHTML(summary: string): string {
   let result = '';
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const nextLine = i < lines.length - 1 ? lines[i + 1] : null;
 
     if (line.startsWith('#')) {
       let titleText = line.replace(/^#+\s*/, '');
@@ -23,7 +24,10 @@ function formatSummaryForHTML(summary: string): string {
       result += `${prefix}<p class="default"><strong>${titleText}</strong></p>`;
     } else {
       const htmlLine = convertMarkdownToHTML(line);
-      result += `<p class="default">${htmlLine}</p><p class="default"><br></p>`;
+      // Ajouter un espace après le paragraphe, sauf si le suivant est un titre (le titre gère son propre espace avant)
+      const isNextHeading = nextLine && nextLine.startsWith('#');
+      const suffix = !isNextHeading ? '<p class="default"><br></p>' : '';
+      result += `<p class="default">${htmlLine}</p>${suffix}`;
     }
   }
 
@@ -53,7 +57,8 @@ export function generateNewsletterHTML(data: NewsletterData, newsletterNumber: s
     article3,
     tool,
     deuxioArticle,
-    deuxioTool,
+    linkedinPostUrl,
+    linkedinPostExcerpt,
   } = data;
 
   if (!article1 || !article2 || !article3 || !tool) {
@@ -80,14 +85,14 @@ export function generateNewsletterHTML(data: NewsletterData, newsletterNumber: s
   const tagTool = escapeForYAML((tool.tag || '').toUpperCase());
 
   const deuxioArticleTitle = escapeForYAML(deuxioArticle?.title || 'Article deux.io');
-  const deuxioToolTitle = escapeForYAML(deuxioTool?.title || 'Outil deux.io');
+  const linkedinUrl = escapeForYAML(linkedinPostUrl || '#');
+  const linkedinExcerpt = escapeForYAML(linkedinPostExcerpt || 'Post LinkedIn');
 
   const url1 = article1.url;
   const url2 = article2.url;
   const url3 = article3.url;
   const urlTool = tool.url;
   const urlDeuxioArticle = deuxioArticle?.url || '#';
-  const urlDeuxioTool = deuxioTool?.url || '#';
 
   const campaignNumber = newsletterNumber;
 
@@ -846,7 +851,7 @@ body:
                       text-valign: top
                       width: 100%
                       valign: top
-                  content: '<p><span style="color:#000000;font-family:lato;font-size:18px;">📚&nbsp;</span><span style="background-color:#ffb7fa;color:#000000;font-family:lato;font-size:18px;"><a href="${urlDeuxioArticle}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer"><em>ARTICLE &nbsp;:</em><em>&nbsp;</em></a></span> <em>${deuxioArticleTitle}</em></p><p><span style="background-color:#faf5ed;color:#000000;font-family:lato;font-size:18px;"><em>⚒️&nbsp;</em></span><a href="${urlDeuxioTool}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer"><span style="background-color:#26b743;color:#000000;font-family:lato;font-size:18px;"><em>TOOLS&nbsp;</em></span></a><span style="background-color:#26b743;color:#000000;font-family:lato;font-size:18px;"><em>:&nbsp;</em></span><em>&nbsp;</em><em>${deuxioToolTitle}</em></p>'
+                  content: '<p><span style="color:#000000;font-family:lato;font-size:18px;">📚&nbsp;</span><span style="background-color:#ffb7fa;color:#000000;font-family:lato;font-size:18px;"><a href="${urlDeuxioArticle}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer"><em>ARTICLE &nbsp;:</em><em>&nbsp;</em></a></span> <em>${deuxioArticleTitle}</em></p><p><span style="background-color:#faf5ed;color:#000000;font-family:lato;font-size:18px;"><em>💼&nbsp;</em></span><a href="${linkedinUrl}" target="_blank" rel="noopener noreferrer"><span style="background-color:#0077B5;color:#FFFFFF;font-family:lato;font-size:18px;"><em>LINKEDIN&nbsp;</em></span></a><span style="background-color:#0077B5;color:#FFFFFF;font-family:lato;font-size:18px;"><em>:&nbsp;</em></span><em>&nbsp;</em><em>${linkedinExcerpt}</em></p>'
                 -
                   type: divider
                   thumbnail: /assets/img/editor/element_divider.svg
@@ -934,8 +939,8 @@ body:
                       width: 50%
                     default:
                       align: center
-                      data-href: 'https://calendly.com/deuxio/agence?month=2025-09'
-                      data-placeholder-href: 'https://calendly.com/deuxio/agence?month=2025-09'
+                      data-href: 'https://deuxio.typeform.com/to/MMUCIr?typeform-source=newsletter'
+                      data-placeholder-href: 'https://deuxio.typeform.com/to/MMUCIr?typeform-source=newsletter'
                       item-height: 50.263671875px
                       type: absoluteLink
                       border-radius: 0px
@@ -949,7 +954,7 @@ body:
                       valign: top
                   content:
                     text: '<p><span style="font-family:lato;font-size:17px;">Prendre rendez-vous</span></p>'
-                    href: 'https://calendly.com/deuxio/agence?month=2025-09'
+                    href: 'https://deuxio.typeform.com/to/MMUCIr?typeform-source=newsletter'
                 -
                   type: text
                   thumbnail: /assets/img/editor/element-title.svg
