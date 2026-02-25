@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { FileText, Loader2, AlertCircle, Sparkles, Code, Send } from 'lucide-react';
+import { FileText, Loader2, AlertCircle, Sparkles, Code } from 'lucide-react';
 import { ArticleData, NewsletterData } from './types';
 import { EditableArticle } from './components/EditableArticle';
 import { EditableTool } from './components/EditableTool';
 import { generateNewsletterHTML } from './utils/generateHTML';
-import { generateEmailHTML } from './utils/generateEmailHTML';
-
 function App() {
   const [newsletterNumber, setNewsletterNumber] = useState('');
   const [urlArticle1, setUrlArticle1] = useState('');
@@ -25,8 +23,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [generatedHTML, setGeneratedHTML] = useState('');
-  const [sendingToBrevo, setSendingToBrevo] = useState(false);
-  const [brevoSuccess, setBrevoSuccess] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
   const [generatingSubject, setGeneratingSubject] = useState(false);
 
@@ -205,7 +201,6 @@ function App() {
 
     const html = generateNewsletterHTML(newsletterData, newsletterNumber);
     setGeneratedHTML(html);
-    setBrevoSuccess('');
   };
 
   const handleDownloadYAML = () => {
@@ -223,69 +218,6 @@ function App() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setBrevoSuccess('Template YAML téléchargé ! Importez-le dans Brevo via l\'éditeur de campagne.');
-  };
-
-  const handleSendToBrevo = async () => {
-    if (!generatedHTML) {
-      setError('Veuillez d\'abord générer le HTML');
-      return;
-    }
-
-    setSendingToBrevo(true);
-    setError('');
-    setBrevoSuccess('');
-
-    try {
-      const newsletterData: NewsletterData = {
-        article1,
-        article2,
-        article3,
-        tool,
-        deuxioArticle,
-        linkedinPostUrl: linkedinPostUrl.trim() || undefined,
-        linkedinPostExcerpt: linkedinPostExcerpt.trim() || undefined,
-      };
-
-      const emailHTML = generateEmailHTML(newsletterData, newsletterNumber);
-
-      console.log('Envoi vers Brevo...', { campaignNumber: newsletterNumber });
-
-      const response = await fetch('/api/create-brevo-campaign', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          htmlContent: emailHTML,
-          campaignNumber: newsletterNumber,
-          subject: emailSubject,
-        }),
-      });
-
-      console.log('Réponse Brevo:', { status: response.status, ok: response.ok });
-
-      let data;
-      try {
-        data = await response.json();
-        console.log('Données de réponse:', data);
-      } catch (parseError) {
-        const text = await response.text();
-        console.error('Erreur de parsing JSON:', text);
-        throw new Error(`Réponse invalide du serveur (${response.status}): ${text.substring(0, 200)}`);
-      }
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || `Erreur HTTP ${response.status}: ${JSON.stringify(data)}`);
-      }
-
-      setBrevoSuccess(`Campagne créée avec succès dans Brevo (ID: ${data.campaignId})`);
-    } catch (err) {
-      console.error('Erreur complète:', err);
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-    } finally {
-      setSendingToBrevo(false);
-    }
   };
 
   return (
@@ -601,32 +533,8 @@ function App() {
                         <FileText className="w-4 h-4" />
                         Télécharger YAML
                       </button>
-                      <button
-                        onClick={handleSendToBrevo}
-                        disabled={sendingToBrevo}
-                        className="px-4 py-2 text-sm bg-lgn-green text-white rounded-lg hover:bg-lgn-green/90 disabled:bg-lgn-green/50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                      >
-                        {sendingToBrevo ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Envoi en cours...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            Envoyer à Brevo
-                          </>
-                        )}
-                      </button>
                     </div>
                   </div>
-
-                  {brevoSuccess && (
-                    <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-green-800 text-sm">{brevoSuccess}</p>
-                    </div>
-                  )}
 
                   <textarea
                     value={generatedHTML}
