@@ -24,10 +24,7 @@ function formatSummaryForHTML(summary: string): string {
       result += `${prefix}<p class="default"><strong>${titleText}</strong></p>`;
     } else {
       const htmlLine = convertMarkdownToHTML(line);
-      // Ajouter un espace après le paragraphe, sauf si le suivant est un titre (le titre gère son propre espace avant)
-      const isNextHeading = nextLine && nextLine.startsWith('#');
-      const suffix = !isNextHeading ? '<p class="default"><br></p>' : '';
-      result += `<p class="default">${htmlLine}</p>${suffix}`;
+      result += `<p class="default">${htmlLine}</p>`;
     }
   }
 
