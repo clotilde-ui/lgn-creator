@@ -105,22 +105,49 @@ function App() {
       }
 
 
-      const responses = await Promise.all(requests);
+      const settledResults = await Promise.allSettled(
+        requests.map(async (request) => {
+          const response = await request;
+          const payload = await response.json().catch(() => null);
 
-      for (const response of responses) {
-        if (!response.ok) {
-          throw new Error('Erreur lors de l\'extraction des textes');
-        }
-      }
+          if (!response.ok) {
+            const apiError = payload && typeof payload === 'object' && 'error' in payload
+              ? String(payload.error)
+              : `Erreur API (${response.status})`;
+            throw new Error(apiError);
+          }
 
-      const dataArray = await Promise.all(responses.map(r => r.json()));
+          if (payload && typeof payload === 'object' && 'error' in payload) {
+            throw new Error(String(payload.error));
+          }
 
-      dataArray.forEach((data, index) => {
-        if (data.error) {
-          throw new Error(data.error);
-        }
+          return payload;
+        })
+      );
 
+      const keyLabels: Record<string, string> = {
+        article1: 'Article 1',
+        article2: 'Article 2',
+        article3: 'Article 3',
+        tool: 'Outil',
+        deuxioArticle: 'Deuxio',
+      };
+
+      const errors: string[] = [];
+      let successCount = 0;
+
+      settledResults.forEach((result, index) => {
         const key = urlMap[index];
+        const label = keyLabels[key] || key;
+
+        if (result.status === 'rejected') {
+          const reason = result.reason instanceof Error ? result.reason.message : 'Erreur inconnue';
+          errors.push(`${label}: ${reason}`);
+          return;
+        }
+
+        successCount += 1;
+        const data = result.value;
         switch (key) {
           case 'article1':
             setArticle1(data);
@@ -139,6 +166,13 @@ function App() {
             break;
         }
       });
+
+      if (errors.length > 0) {
+        if (successCount === 0) {
+          throw new Error(errors.join(' | '));
+        }
+        setError(`Certaines URLs n'ont pas pu être extraites: ${errors.join(' | ')}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {
