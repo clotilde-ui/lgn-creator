@@ -100,13 +100,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'URL is required' });
     }
 
-    const response = await fetch(url);
+    const fetchPageContent = async (targetUrl: string) => {
+      const directResponse = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Cache-Control': 'no-cache',
+        },
+      });
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: `Failed to fetch URL: ${response.statusText}` });
+      if (directResponse.ok) {
+        return { content: await directResponse.text(), source: 'direct' as const };
+      }
+
+      const shouldTryFallback = [401, 403, 429, 500, 502, 503, 504].includes(directResponse.status);
+
+      if (!shouldTryFallback) {
+        return { error: `Failed to fetch URL: ${directResponse.status} ${directResponse.statusText}` };
+      }
+
+      const fallbackUrl = `https://r.jina.ai/http://${targetUrl.replace(/^https?:\/\//i, '')}`;
+      const fallbackResponse = await fetch(fallbackUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        },
+      });
+
+      if (!fallbackResponse.ok) {
+        return { error: `Failed to fetch URL: ${directResponse.status} ${directResponse.statusText}` };
+      }
+
+      return { content: await fallbackResponse.text(), source: 'fallback' as const };
+    };
+
+    const pageFetchResult = await fetchPageContent(url);
+
+    if ('error' in pageFetchResult) {
+      return res.status(400).json({ error: pageFetchResult.error });
     }
 
-    const html = await response.text();
+    const html = pageFetchResult.content;
 
     const pageTitle = (html.match(/<title[^>]*>(.*?)<\/title>/i)?.[1] || '')
       .replace(/\s+/g, ' ')
