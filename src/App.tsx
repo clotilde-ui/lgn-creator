@@ -107,13 +107,20 @@ function App() {
 
       const responses = await Promise.all(requests);
 
-      for (const response of responses) {
-        if (!response.ok) {
-          throw new Error('Erreur lors de l\'extraction des textes');
-        }
-      }
+      const dataArray = await Promise.all(
+        responses.map(async (response) => {
+          const payload = await response.json().catch(() => null);
 
-      const dataArray = await Promise.all(responses.map(r => r.json()));
+          if (!response.ok) {
+            const apiError = payload && typeof payload === 'object' && 'error' in payload
+              ? String(payload.error)
+              : `Erreur API (${response.status})`;
+            throw new Error(apiError);
+          }
+
+          return payload;
+        })
+      );
 
       dataArray.forEach((data, index) => {
         if (data.error) {
