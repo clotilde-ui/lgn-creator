@@ -24,7 +24,6 @@ function formatSummaryForHTML(summary: string): string {
   let result = '';
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const nextLine = i < lines.length - 1 ? lines[i + 1] : null;
 
     if (line.startsWith('#') || isRetenirTitle(line)) {
       let titleText = line.replace(/^#+\s*/, '').replace(/\*\*/g, '');

@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { FileText, Loader2, AlertCircle, Sparkles, Code } from 'lucide-react';
+import { FileText, Loader2, AlertCircle, Sparkles, Code, Save, Check, Database, PenLine } from 'lucide-react';
 import { ArticleData, NewsletterData } from './types';
 import { EditableArticle } from './components/EditableArticle';
 import { EditableTool } from './components/EditableTool';
+import { Archives } from './components/Archives';
 import { generateNewsletterHTML } from './utils/generateHTML';
+
+type Tab = 'generation' | 'archives';
+
 function App() {
+  const [tab, setTab] = useState<Tab>('generation');
   const [newsletterNumber, setNewsletterNumber] = useState('');
   const [urlArticle1, setUrlArticle1] = useState('');
   const [urlArticle2, setUrlArticle2] = useState('');
@@ -24,6 +29,8 @@ function App() {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailSubjectProposals, setEmailSubjectProposals] = useState<string[]>([]);
   const [generatingSubject, setGeneratingSubject] = useState(false);
+  const [savingNewsletter, setSavingNewsletter] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleExtract = async () => {
     if (!newsletterNumber.trim()) {
@@ -235,6 +242,42 @@ function App() {
     setGeneratedHTML(html);
   };
 
+  const handleSaveNewsletter = async () => {
+    if (!generatedHTML) {
+      setError('Veuillez d\'abord générer le HTML');
+      return;
+    }
+
+    setSavingNewsletter(true);
+    setSaveSuccess(false);
+    setError('');
+
+    try {
+      const response = await fetch('/api/newsletters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newsletterNumber: newsletterNumber.trim() || 'sans numéro',
+          subject: emailSubject.trim(),
+          yaml: generatedHTML,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de l\'enregistrement');
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setSavingNewsletter(false);
+    }
+  };
+
   const handleDownloadYAML = () => {
     if (!generatedHTML) {
       setError('Veuillez d\'abord générer le HTML');
@@ -267,6 +310,35 @@ function App() {
           </p>
         </div>
 
+        <div className="flex justify-center gap-2 mb-8">
+          <button
+            onClick={() => setTab('generation')}
+            className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+              tab === 'generation'
+                ? 'bg-lgn-pink text-white'
+                : 'bg-white text-lgn-dark border border-gray-300 hover:bg-lgn-cream'
+            }`}
+          >
+            <PenLine className="w-4 h-4" />
+            Génération
+          </button>
+          <button
+            onClick={() => setTab('archives')}
+            className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+              tab === 'archives'
+                ? 'bg-lgn-pink text-white'
+                : 'bg-white text-lgn-dark border border-gray-300 hover:bg-lgn-cream'
+            }`}
+          >
+            <Database className="w-4 h-4" />
+            Archives
+          </button>
+        </div>
+
+        {tab === 'archives' ? (
+          <Archives />
+        ) : (
+        <>
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6 border border-lgn-pink/20">
           <h2 className="text-xl font-semibold text-lgn-dark mb-6">1. Entrez les URLs</h2>
 
@@ -549,6 +621,20 @@ function App() {
                         <FileText className="w-4 h-4" />
                         Télécharger YAML
                       </button>
+                      <button
+                        onClick={handleSaveNewsletter}
+                        disabled={savingNewsletter}
+                        className="px-4 py-2 text-sm bg-lgn-green text-white rounded-lg hover:bg-lgn-green/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      >
+                        {savingNewsletter ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : saveSuccess ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
+                        {saveSuccess ? 'Enregistrée' : 'Enregistrer'}
+                      </button>
                     </div>
                   </div>
 
@@ -562,6 +648,8 @@ function App() {
               )}
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
