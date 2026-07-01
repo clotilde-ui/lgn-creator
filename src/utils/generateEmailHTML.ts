@@ -18,6 +18,19 @@ function extractTitle(summary: string): string {
   return firstLine.replace(/^#+\s*/, '').replace(/\*\*/g, '');
 }
 
+function isRetenirTitle(line: string): boolean {
+  const cleaned = line
+    .replace(/^#+\s*/, '')
+    .replace(/\*\*/g, '')
+    .replace(/^[^\p{L}]*/u, '')
+    .trim();
+  return /^[àa]\s*retenir/i.test(cleaned);
+}
+
+function isHeading(line: string): boolean {
+  return line.startsWith('#') || isRetenirTitle(line);
+}
+
 function formatSummaryToHTML(summary: string): string {
   const lines = summary
     .split('\n')
@@ -29,8 +42,8 @@ function formatSummaryToHTML(summary: string): string {
     const line = lines[i];
     const nextLine = i < lines.length - 1 ? lines[i + 1] : null;
 
-    if (line.startsWith('#')) {
-      let titleText = line.replace(/^#+\s*/, '');
+    if (isHeading(line)) {
+      let titleText = line.replace(/^#+\s*/, '').replace(/\*\*/g, '');
       titleText = convertMarkdownToHTML(titleText);
       const marginTop = i > 0 ? '20px' : '0';
       // Pas de margin-bottom : le paragraphe qui suit doit être collé au titre
@@ -38,7 +51,7 @@ function formatSummaryToHTML(summary: string): string {
     } else {
       const htmlLine = convertMarkdownToHTML(line);
       // Espace après le paragraphe, sauf si le suivant est un titre (le titre gère son propre espace avant avec margin-top)
-      const isNextHeading = nextLine && nextLine.startsWith('#');
+      const isNextHeading = nextLine ? isHeading(nextLine) : false;
       const marginBottom = isNextHeading ? '0' : '10px';
       result += `<p style="margin: 0 0 ${marginBottom} 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">${htmlLine}</p>`;
     }
