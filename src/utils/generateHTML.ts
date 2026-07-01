@@ -6,6 +6,15 @@ function extractTitle(summary: string): string {
   return firstLine.replace(/^#+\s*/, '').replace(/\*\*/g, '');
 }
 
+function isRetenirTitle(line: string): boolean {
+  const cleaned = line
+    .replace(/^#+\s*/, '')
+    .replace(/\*\*/g, '')
+    .replace(/^[^\p{L}]*/u, '')
+    .trim();
+  return /^[àa]\s*retenir/i.test(cleaned);
+}
+
 function formatSummaryForHTML(summary: string): string {
   const lines = summary
     .split('\n')
@@ -17,8 +26,8 @@ function formatSummaryForHTML(summary: string): string {
     const line = lines[i];
     const nextLine = i < lines.length - 1 ? lines[i + 1] : null;
 
-    if (line.startsWith('#')) {
-      let titleText = line.replace(/^#+\s*/, '');
+    if (line.startsWith('#') || isRetenirTitle(line)) {
+      let titleText = line.replace(/^#+\s*/, '').replace(/\*\*/g, '');
       titleText = convertMarkdownToHTML(titleText);
       const prefix = i > 0 ? '<p class="default"><br></p>' : '';
       result += `${prefix}<p class="default"><strong>${titleText}</strong></p>`;
