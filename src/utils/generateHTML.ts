@@ -520,7 +520,7 @@ body:
                       text-valign: top
                       width: 100%
                       valign: top
-                  content: '${body1}<p class="default"><a href="${url1}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#232323;text-decoration:underline;"><em>Lire l''article</em></a><em>&nbsp;by ${author1}</em></p><p class="default"><br></p>'
+                  content: '${body1}<p class="default"><br></p><p class="default"><a href="${url1}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#232323;text-decoration:underline;"><em>Lire l''article</em></a><em>&nbsp;by ${author1}</em></p><p class="default"><br></p>'
                 -
                   type: text
                   thumbnail: /assets/img/editor/element-title.svg
@@ -589,7 +589,7 @@ body:
                       text-valign: top
                       width: 100%
                       valign: top
-                  content: '${body2}<p class="default"><a href="${url2}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#232323;text-decoration:underline;"><em>Lire l''article</em></a><em>&nbsp;by ${author2}</em></p>'
+                  content: '${body2}<p class="default"><br></p><p class="default"><a href="${url2}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#232323;text-decoration:underline;"><em>Lire l''article</em></a><em>&nbsp;by ${author2}</em></p>'
                 -
                   type: text
                   thumbnail: /assets/img/editor/element-title.svg
@@ -660,7 +660,7 @@ body:
                       text-valign: top
                       width: 100%
                       valign: top
-                  content: '${body3}<p class="default"><a href="${url3}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#232323;text-decoration:underline;"><em>Lire l''article</em></a><em>&nbsp;by ${author3}</em></p>'
+                  content: '${body3}<p class="default"><br></p><p class="default"><a href="${url3}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#232323;text-decoration:underline;"><em>Lire l''article</em></a><em>&nbsp;by ${author3}</em></p>'
                 -
                   type: divider
                   thumbnail: /assets/img/editor/element_divider.svg
