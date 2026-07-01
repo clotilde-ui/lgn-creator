@@ -54,8 +54,6 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
     article3,
     tool,
     deuxioArticle,
-    linkedinPostUrl,
-    linkedinPostExcerpt,
   } = data;
 
   if (!article1 && !article2 && !article3 && !tool) {
@@ -82,8 +80,6 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
   const tagTool = (tool?.tag || '').toUpperCase();
 
   const deuxioArticleTitle = deuxioArticle?.title || 'Article deux.io';
-  const linkedinUrl = linkedinPostUrl || '#';
-  const linkedinExcerpt = linkedinPostExcerpt || 'Post LinkedIn';
 
   const url1 = article1?.url || '#';
   const url2 = article2?.url || '#';
@@ -264,7 +260,7 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
           </tr>
           ` : ''}
 
-          ${deuxioArticle || linkedinPostUrl ? `
+          ${deuxioArticle ? `
           <!-- Divider -->
           <tr>
             <td align="center" style="padding: 30px 40px 15px 40px;">
@@ -283,11 +279,8 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
           </tr>
           <tr>
             <td style="padding: 15px 40px;">
-              ${deuxioArticle ? `<p style="margin: 0 0 10px 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">
+              ${deuxioArticle ? `<p style="margin: 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">
                 📚 <span style="background-color: #ffb7fa; padding: 2px 8px;"><a href="${urlDeuxioArticle}?utm_source=newsletter&utm_medium=email&utm_campaign=${campaignNumber}" style="color: #000000; text-decoration: none;"><em>ARTICLE :</em></a></span> <em>${deuxioArticleTitle}</em>
-              </p>` : ''}
-              ${linkedinPostUrl ? `<p style="margin: 0; font-family: Lato, sans-serif; font-size: 18px; line-height: 1.5; color: #232323;">
-                <em>💼 </em><a href="${linkedinUrl}"><span style="background-color: #0077B5; padding: 2px 8px; color: #FFFFFF;"><em>LINKEDIN</em></span></a><span style="background-color: #0077B5; padding: 2px 8px; color: #FFFFFF;"><em>:</em></span> <em>${linkedinExcerpt}</em>
               </p>` : ''}
             </td>
           </tr>

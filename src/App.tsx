@@ -11,8 +11,6 @@ function App() {
   const [urlArticle3, setUrlArticle3] = useState('');
   const [urlTool, setUrlTool] = useState('');
   const [urlDeuxioArticle, setUrlDeuxioArticle] = useState('');
-  const [linkedinPostUrl, setLinkedinPostUrl] = useState('');
-  const [linkedinPostExcerpt, setLinkedinPostExcerpt] = useState('');
 
   const [article1, setArticle1] = useState<ArticleData | null>(null);
   const [article2, setArticle2] = useState<ArticleData | null>(null);
@@ -231,8 +229,6 @@ function App() {
       article3,
       tool,
       deuxioArticle,
-      linkedinPostUrl: linkedinPostUrl.trim() || undefined,
-      linkedinPostExcerpt: linkedinPostExcerpt.trim() || undefined,
     };
 
     const html = generateNewsletterHTML(newsletterData, newsletterNumber);
@@ -367,36 +363,6 @@ function App() {
                   disabled={loading}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="linkedinPostUrl" className="block text-sm font-medium text-slate-700 mb-2">
-                    URL du post LinkedIn
-                  </label>
-                  <input
-                    id="linkedinPostUrl"
-                    type="url"
-                    value={linkedinPostUrl}
-                    onChange={(e) => setLinkedinPostUrl(e.target.value)}
-                    placeholder="https://www.linkedin.com/posts/..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lgn-green focus:border-transparent outline-none transition-all"
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="linkedinPostExcerpt" className="block text-sm font-medium text-slate-700 mb-2">
-                    Debut du post LinkedIn
-                  </label>
-                  <textarea
-                    id="linkedinPostExcerpt"
-                    value={linkedinPostExcerpt}
-                    onChange={(e) => setLinkedinPostExcerpt(e.target.value)}
-                    placeholder="Les premières lignes du post..."
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lgn-green focus:border-transparent outline-none transition-all"
-                    disabled={loading}
-                  />
-                </div>
-              </div>
             </div>
 
             <button
@@ -489,13 +455,6 @@ function App() {
                   <div className="bg-white rounded-lg border border-slate-200 p-6">
                     <h3 className="text-sm font-semibold text-slate-700 mb-2">Article deux.io</h3>
                     <p className="text-slate-600">{deuxioArticle.title || 'Titre extrait'}</p>
-                  </div>
-                )}
-
-                {linkedinPostUrl && (
-                  <div className="bg-white rounded-lg border border-slate-200 p-6">
-                    <h3 className="text-sm font-semibold text-slate-700 mb-2">Post LinkedIn</h3>
-                    <p className="text-slate-600">{linkedinPostExcerpt || linkedinPostUrl}</p>
                   </div>
                 )}
               </div>

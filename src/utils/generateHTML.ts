@@ -63,8 +63,6 @@ export function generateNewsletterHTML(data: NewsletterData, newsletterNumber: s
     article3,
     tool,
     deuxioArticle,
-    linkedinPostUrl,
-    linkedinPostExcerpt,
   } = data;
 
   if (!article1 || !article2 || !article3 || !tool) {
@@ -91,8 +89,6 @@ export function generateNewsletterHTML(data: NewsletterData, newsletterNumber: s
   const tagTool = escapeForYAML((tool.tag || '').toUpperCase());
 
   const deuxioArticleTitle = escapeForYAML(deuxioArticle?.title || 'Article deux.io');
-  const linkedinUrl = escapeForYAML(linkedinPostUrl || '#');
-  const linkedinExcerpt = escapeForYAML(linkedinPostExcerpt || 'Post LinkedIn');
 
   const url1 = article1.url;
   const url2 = article2.url;
@@ -857,7 +853,7 @@ body:
                       text-valign: top
                       width: 100%
                       valign: top
-                  content: '<p><span style="color:#000000;font-family:lato;font-size:18px;">📚&nbsp;</span><span style="background-color:#ffb7fa;color:#000000;font-family:lato;font-size:18px;"><a href="${urlDeuxioArticle}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#000000;text-decoration:none;"><em>ARTICLE &nbsp;:</em><em>&nbsp;</em></a></span> <em>${deuxioArticleTitle}</em></p><p><span style="background-color:#faf5ed;color:#000000;font-family:lato;font-size:18px;"><em>💼&nbsp;</em></span><a href="${linkedinUrl}" target="_blank" rel="noopener noreferrer" style="color:#FFFFFF;text-decoration:none;"><span style="background-color:#0077B5;color:#FFFFFF;font-family:lato;font-size:18px;"><em>LINKEDIN&nbsp;</em></span></a><span style="background-color:#0077B5;color:#FFFFFF;font-family:lato;font-size:18px;"><em>:&nbsp;</em></span><em>&nbsp;</em><em>${linkedinExcerpt}</em></p>'
+                  content: '<p><span style="color:#000000;font-family:lato;font-size:18px;">📚&nbsp;</span><span style="background-color:#ffb7fa;color:#000000;font-family:lato;font-size:18px;"><a href="${urlDeuxioArticle}?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=${campaignNumber}" target="_blank" rel="noopener noreferrer" style="color:#000000;text-decoration:none;"><em>ARTICLE &nbsp;:</em><em>&nbsp;</em></a></span> <em>${deuxioArticleTitle}</em></p>'
                 -
                   type: divider
                   thumbnail: /assets/img/editor/element_divider.svg
