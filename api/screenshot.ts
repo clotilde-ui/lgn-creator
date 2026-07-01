@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       full_page: 'false',
       block_ads: 'true',
       block_cookie_banners: 'true',
-      block_chat_widgets: 'true',
+      block_chats: 'true',
       cache: 'true',
       cache_ttl: '2592000',
     });
