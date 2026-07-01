@@ -34,6 +34,7 @@ function App() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [sendingBrevo, setSendingBrevo] = useState(false);
   const [brevoSuccess, setBrevoSuccess] = useState(false);
+  const [brevoError, setBrevoError] = useState('');
 
   const handleExtract = async () => {
     if (!newsletterNumber.trim()) {
@@ -283,17 +284,17 @@ function App() {
 
   const handleCreateBrevoCampaign = async () => {
     if (!generatedHTML) {
-      setError('Veuillez d\'abord générer la newsletter');
+      setBrevoError('Veuillez d\'abord générer la newsletter');
       return;
     }
     if (!emailSubject.trim()) {
-      setError('Veuillez d\'abord renseigner l\'objet de l\'email');
+      setBrevoError('Veuillez d\'abord renseigner l\'objet de l\'email (étape 3)');
       return;
     }
 
     setSendingBrevo(true);
     setBrevoSuccess(false);
-    setError('');
+    setBrevoError('');
 
     try {
       const newsletterData: NewsletterData = {
@@ -323,9 +324,8 @@ function App() {
       }
 
       setBrevoSuccess(true);
-      setTimeout(() => setBrevoSuccess(false), 5000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      setBrevoError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setSendingBrevo(false);
     }
@@ -715,6 +715,13 @@ function App() {
                       <ExternalLink className="w-4 h-4" />
                       Brouillon créé dans Brevo. Clique ici pour le relire et l'envoyer.
                     </a>
+                  )}
+
+                  {brevoError && (
+                    <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-red-800 text-sm">{brevoError}</p>
+                    </div>
                   )}
 
                   <textarea
