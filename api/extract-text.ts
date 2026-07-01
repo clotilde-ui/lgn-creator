@@ -21,31 +21,43 @@ const TOOL_PROMPT = `Pour ma newsletter, tu dois rédiger la partie : l'outil de
 Je vais te donner le lien de l'outil, ensuite tu rédigeras la partie de la newsletter : l'outil de la semaine, en t'inspirant des newsletter ci dessous.
 
 quelques consignes :
-- pas de tirets dans le texte (utiliser des virgules à la place)
+- pas de tirets
 - pas d'émojis
 - un peu d'humour
-- pas de virgule après un "et" si ce n'est pas grammaticalement nécessaire
+- pas de virgule après un "et" si ce n'est pas grammaticalement nécessaire.
 - si tu t'adresses au lecteur : tutoiement obligatoire
 
 voilà le format et le ton attendus :
 
-"Meta a racheté Manus il y a quelques mois, et on comprend pourquoi Zuckerberg a mis la main sur ce "General Purpose Agent".
+"Meta a racheté Manus il y a quelques mois, et on comprend pourquoi  Zuckerberg a mis la main sur ce "General Purpose Agent".
 
 Contrairement aux chatbots classiques, Manus ne se contente pas de parler : il exécute.
 
-Capable de naviguer sur le web pour comparer des offres ou remplir des formulaires à ta place, il est aussi un redoutable créateur capable de générer des sites web complets, des présentations percutantes ou même des applications de bureau fonctionnelles en quelques secondes.
+Capable de naviguer sur le web pour comparer des offres ou remplir des formulaires à votre place, il est aussi un redoutable créateur capable de générer des sites web complets, des présentations percutantes ou même des applications de bureau fonctionnelles en quelques secondes.
 
-Que tu aies besoin de déléguer une recherche de marché fastidieuse, de coder un outil métier sans toucher une ligne de script ou de transformer une idée brute en design pro, il agit comme un assistant multitâche ultra-rapide."
+Que vous ayez besoin de déléguer une recherche de marché fastidieuse, de coder un outil métier sans toucher une ligne de script ou de transformer une idée brute en design pro, il agit comme un assistant multitâche ultra-rapide."
 
 ----
 
-"Marre de nettoyer du code HTML sale pour tes projets d'IA ?
+"Marre de nettoyer du code HTML sale pour vos projets d'IA ?
 
-Firecrawl est le chaînon manquant. Contrairement aux scrapers classiques, il transforme n'importe quel site (même les plus complexes en React ou Vue) en un Markdown ultra-propre ou en JSON structuré. C'est l'outil parfait pour alimenter tes pipelines RAG ou tes agents autonomes sans perdre de temps en pré-processing.
+Firecrawl est le chaînon manquant. Contrairement aux scrapers classiques, il transforme n'importe quel site (même les plus complexes en React ou Vue) en un Markdown ultra-propre ou en JSON structuré. C'est l'outil parfait pour alimenter vos pipelines RAG ou vos agents autonomes sans perdre de temps en pré-processing.
 
 En une ligne d'API, il gère les proxys, le rendu JavaScript et les anti-bots.
 
-Le petit plus : L'endpoint /extract qui permet de décrire en langage naturel ce que tu veux récupérer (ex: "les prix et noms des produits")."`;
+Le petit plus : L'endpoint /extract qui permet de décrire en langage naturel ce que vous voulez récupérer (ex: "les prix et noms des produits")."
+---
+
+"Trouver des leads B2B en France, c'est souvent jongler entre trois onglets et un fichier Excel qui pleure.
+
+
+Basile règle le problème en mettant tout au même endroit. Il croise les données légales (INSEE, Infogreffe, BODACC), Google Maps, les profils LinkedIn publics et les données financières pour te sortir 26 millions d'entreprises et 4,4 millions de contacts français dans une seule base bien propre. Tu filtres, tu cherches et tu exportes en quelques clics, sans repasser par la case scraping artisanal.
+
+
+Le vrai argument, c'est le prix : à partir de 29€ par mois en bêta, ça pique nettement moins que la concurrence. Et pour les bidouilleurs, il y a une API et un connecteur MCP qui se branche directement sur Claude ou ton IA préférée, histoire de déléguer la prospection à un agent pendant que tu finis ton café.
+
+
+Petit bonus rassurant pour ton juriste : tout est 100% RGPD compliant puisque la donnée provient de sources publiques."`;
 
 
 const AUTHOR_PROMPT = `Tu es un assistant qui extrait le nom de l'auteur d'un article.
