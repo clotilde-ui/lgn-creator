@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Loader2, AlertCircle, Sparkles, Code, Save, Check, Database, PenLine, Send, ExternalLink } from 'lucide-react';
+import { FileText, Loader2, AlertCircle, Sparkles, Code, Save, Check, Database, PenLine, Send } from 'lucide-react';
 import { ArticleData, NewsletterData } from './types';
 import { EditableArticle } from './components/EditableArticle';
 import { EditableTool } from './components/EditableTool';
@@ -34,6 +34,7 @@ function App() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [sendingBrevo, setSendingBrevo] = useState(false);
   const [brevoSuccess, setBrevoSuccess] = useState(false);
+  const [brevoCampaignId, setBrevoCampaignId] = useState<number | null>(null);
   const [brevoError, setBrevoError] = useState('');
 
   const handleExtract = async () => {
@@ -323,6 +324,7 @@ function App() {
         throw new Error(data.error || 'Erreur lors de la création de la campagne Brevo');
       }
 
+      setBrevoCampaignId(typeof data.id === 'number' ? data.id : null);
       setBrevoSuccess(true);
     } catch (err) {
       setBrevoError(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -706,15 +708,14 @@ function App() {
                   </div>
 
                   {brevoSuccess && (
-                    <a
-                      href="https://app.brevo.com/marketing-campaigns/classic"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-4 bg-lgn-green/10 border border-lgn-green/30 rounded-lg text-sm text-lgn-dark hover:bg-lgn-green/20 transition-colors"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Brouillon créé dans Brevo. Clique ici pour le relire et l'envoyer.
-                    </a>
+                    <div className="flex items-start gap-3 p-4 bg-lgn-green/10 border border-lgn-green/30 rounded-lg text-sm text-lgn-dark">
+                      <Check className="w-5 h-5 text-lgn-green flex-shrink-0 mt-0.5" />
+                      <p>
+                        Brouillon créé dans Brevo
+                        {brevoCampaignId ? ` (campagne #${brevoCampaignId})` : ''}. Retrouve-le dans{' '}
+                        <span className="font-medium">Marketing → Campaigns</span> pour le relire et l'envoyer.
+                      </p>
+                    </div>
                   )}
 
                   {brevoError && (
