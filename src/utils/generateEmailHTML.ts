@@ -107,7 +107,7 @@ export function generateEmailHTML(data: NewsletterData, newsletterNumber: string
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #faf5ed;">
     <tr>
       <td align="center" style="padding: 20px 0;">
-        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #faf5ed;">
 
           <!-- Header -->
           <tr>
